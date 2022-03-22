@@ -3,6 +3,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 // import db from "./dbConfig.js";
 
+
+
 import { join, dirname } from 'path'
 import { Low, JSONFile } from 'lowdb'
 import { fileURLToPath } from 'url'
@@ -26,6 +28,9 @@ await db.write()
 
 const app = express();
 
+app.use(cors());
+app.use(bodyParser.json());
+
 app.get("/", (req, res) => {
     res.send({
         message: "Hello World",
@@ -48,6 +53,36 @@ app.get("/api/orders", (req, res) => {
         data: allOrders
     });
 }); 
+
+app.post("/api/orders/validate", (req, res) => {
+    const reqBody = req.body;
+    console.info("Validate API called")
+    console.log(reqBody)
+    db.data.orderValidation.push({
+        orderText : JSON.stringify(reqBody),
+    })
+
+    
+    db.write()
+
+    res.send({
+        message: "Order validated",
+        success: true,
+        itemAdded: reqBody
+    });
+});
+
+
+app.get("/api/orders/validate/", (req, res) => {
+    const allOrders = db.data.orderValidation;
+    console.log("API to get validation called")
+    return res.send({
+        message: "All order validations",
+        success: true,
+        data: allOrders
+    });
+})
+
 
 /**
  * @api {get} /api/orders/:id Get order by id
@@ -115,26 +150,6 @@ app.post("/api/orders", (req, res) => {
     });
 });
 
-app.post("/api/orders/validate", (req, res) => {
-    const reqBody = req.body;
-    console.info("Validate API called")
-    console.log(reqBody)
-    db.data.orderValidation.push({
-        orderText : JSON.stringify(reqBody),
-    })
-
-});
-
-
-app.get("/api/orders/validate/", (req, res) => {
-    const allOrders = db.data.orderValidation;
-    console.log("API to get validation called")
-    return res.send({
-        message: "All order validations",
-        success: true,
-        data: allOrders
-    });
-})
 
 let port = process.env.PORT;
 if (port == null || port == "") {
