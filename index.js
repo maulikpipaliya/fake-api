@@ -74,6 +74,9 @@ app.get("/api/orders/:id", (req, res) => {
  * 
  */
 app.post("/api/orders", (req, res) => {
+
+    console.info("[INFO] : Create an ORDER: API called")
+
     //create random orderId
     const orderId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
     
@@ -112,23 +115,26 @@ app.post("/api/orders", (req, res) => {
     });
 });
 
-app.get("/api/orders/validate", (req, res) => {
-    const orderId = req.query.orderId;
-    if (!orderId) {
-        res.status(400).send({
-            message: "Order Id is required",
-            success: false,
-        });
-    }
+app.post("/api/orders/validate", (req, res) => {
+    const reqBody = req.body;
+    console.info("Validate API called")
+    console.log(reqBody)
+    db.data.orderValidation.push({
+        orderText : JSON.stringify(reqBody),
+    })
 
-    const { receivedDocuments } = req.body;
-    if (!receivedDocuments) {
-        res.status(400).send({
-            message: "Received documents is required",
-            success: false,
-        });
-    }
 });
+
+
+app.get("/api/orders/validate/", (req, res) => {
+    const allOrders = db.data.orderValidation;
+    console.log("API to get validation called")
+    return res.send({
+        message: "All order validations",
+        success: true,
+        data: allOrders
+    });
+})
 
 let port = process.env.PORT;
 if (port == null || port == "") {
